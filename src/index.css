@@ -35,6 +35,7 @@ header {
 }
 
 .form-wrapper {
+  position: relative;
   margin: 1rem 0;
   display: flex;
   width: 100%;
@@ -108,7 +109,7 @@ img {
 .error {
   color: red;
   position: absolute;
-  top: 60px;
+  top: -50px;
   width: 100%;
   text-align: center;
 }
@@ -185,7 +186,9 @@ img {
 
 
   & h4 {
-    margin: 0.15rem 0 0.3rem 0;
+    width: 100%;
+    text-align: center;
+    margin: 0 0 0.3rem 0;
   }
 
   & li:nth-child(3n) {
