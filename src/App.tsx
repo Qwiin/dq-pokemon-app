@@ -71,7 +71,7 @@ function App() {
   const fetchPokemon = async (searchTerm: string) => {
     const signal = abortConroller.signal;
 
-    const fetchUrl: string = `${API_URL}${searchTerm}`;
+    const fetchUrl: string = `${API_URL}${searchTerm.toLowerCase()}`;
     console.log(fetchUrl);
 
     fetch(fetchUrl, { signal })
