@@ -55,9 +55,9 @@ export interface IPokemon {
   species: NameURL;
   sprites?: {
     "back_default": string | null,
-    "back_female": null,
+    "back_female": string | null,
     "back_shiny": string | null,
-    "back_shiny_female": null,
+    "back_shiny_female": string | null,
     "front_default": string | null,
     "front_female": string | null,
     "front_shiny": string | null;
@@ -67,7 +67,7 @@ export interface IPokemon {
       "dream_world":
       {
         "front_default": string | null;
-        "front_female": null
+        "front_female": string | null;
       },
       "home":
       {
@@ -283,6 +283,6 @@ export interface IPokemon {
       url: string;
     };
 
-    weight: number;
-  }
+  }[],
+  weight: number;
 }
