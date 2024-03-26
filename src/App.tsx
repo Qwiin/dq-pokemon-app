@@ -2,7 +2,7 @@
 import { useRef, useState, useEffect, RefObject, useCallback } from 'react';
 import { IPokemon } from '../IPokemon';
 
-const API_URL: string = "https://pokeapi.co/api/v2/pokemon/";
+export const API_URL: string = "https://pokeapi.co/api/v2/pokemon/";
 const abortConroller = new AbortController();
 
 const NO_RESULTS: string = "No Results";
@@ -126,18 +126,18 @@ function App() {
     setFetchCalled(false);
   }
 
-  const renderAbilities = useCallback((pokemon: IPokemon) => {
+  const renderMovesList = useCallback((pokemon: IPokemon) => {
     return (
       <>
-        <h1>Abilities</h1>
-        <ul className='abilities-list'>
+        <h1>Moves</h1>
+        <ul data-testid='pokemon-moves' className='moves-list'>
           {
             pokemon.moves.map(
               ($move, index) => {
                 const move = $move.move;
                 return (
                   // This is extra
-                  <li className="ability" key={ index }
+                  <li className="move" key={ index }
                     onMouseOver={ (e) => {
                       if (window.innerWidth - e.screenX < 200) {
                         e.currentTarget.lastElementChild?.classList.add('left');
@@ -175,16 +175,16 @@ function App() {
       console.log(index);
       console.log(pokemon);
       return (
-        <div className="pokemon-card">
+        <div data-testid="pokemon-result" className="pokemon-card">
           <div>
-            <h1 className="pokemon-name rounded-border">{ pokemon.name }</h1>
+            <h1 data-testId="pokemon-name" className="pokemon-name rounded-border">{ pokemon.name }</h1>
           </div>
           <div className='picture-wrapper rounded-border'>
-            <img height={ 300 } width={ 300 }
+            <img data-testid="pokemon-image" height={ 300 } width={ 300 }
               src={ `${pokemon.sprites?.front_default ?? ''}` }
               alt="no image" />
           </div>
-          { renderAbilities(pokemon) }
+          { renderMovesList(pokemon) }
         </div >
       );
     })
@@ -194,29 +194,28 @@ function App() {
 
   return (
     <>
-      <header>The Definitive Rx Pokedex <span style={ { fontSize: "2.4rem" } }>Front-End</span> <span style={ { fontSize: "1.8rem" } }>(tribute)</span></header>
+      <header data-testid="header">The Definitive Rx Pokedex <span style={ { fontSize: "2.4rem" } }>Front-End</span> <span style={ { fontSize: "1.8rem" } }>(tribute)</span></header>
       <div className='form-wrapper'>
-        <input id="Search" type='text' ref={ searchBoxRef }
+        <input data-testid="search-input" id="Search" type='text' ref={ searchBoxRef }
           placeholder='enter a pokemon name' />
-        <button id="Button" ref={ searchBtnRef } onClick={ () => {
+        <button data-testid="search-button" id="Button" ref={ searchBtnRef } onClick={ () => {
           if (!searchBoxRef.current.value) {
             return
           };
           setFetchCalled(true);
         } } disabled={ loading }>{ loading ? 'Loading' : 'Search' }</button>
         { error &&
-          <h3 className='error'>{ "Error:" + error }</h3>
+          <h3 data-testid="error-state" className='error'>{ "Error:" + error }</h3>
         }
       </div>
 
       { pokemonList && pokemonList.length > 0 && renderPokemonList() }
       { noResults &&
 
-        <div className="empty"><h1>{ NO_RESULTS }</h1></div>
+        <div data-testid="empty-state" className="empty"><h1>{ NO_RESULTS }</h1></div>
       }
     </>
   );
 }
-
 
 export default App;
