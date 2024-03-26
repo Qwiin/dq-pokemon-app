@@ -1,6 +1,6 @@
 
 import { useRef, useState, useEffect, RefObject, useCallback } from 'react';
-import { IPokemon } from '../IPokemon';
+import { IPokemon, IPokemonMove } from '../IPokemon';
 
 export const API_URL: string = "https://pokeapi.co/api/v2/pokemon/";
 const abortConroller = new AbortController();
@@ -129,39 +129,33 @@ function App() {
   const renderMovesList = useCallback((pokemon: IPokemon) => {
     return (
       <>
-        <h1>Moves</h1>
+        <h2>Moves</h2>
         <ul data-testid='pokemon-moves' className='moves-list'>
           {
-            pokemon.moves.map(
+            pokemon.moves.sort((a, b) => {
+              return a.move.name <= b.move.name ? -1 : 1;
+            }).map(
               ($move, index) => {
                 const move = $move.move;
                 return (
                   // This is extra
                   <li className="move" key={ index }
                     onMouseOver={ (e) => {
-                      if (window.innerWidth - e.screenX < 200) {
+                      console.log(`window.innerWidth - e.clientX = ${window.innerWidth - e.clientX}`);
+                      if (window.innerWidth - e.clientX < 220) {
                         e.currentTarget.lastElementChild?.classList.add('left');
+                      }
+                      else if (e.clientX < 220) {
+                        e.currentTarget.lastElementChild?.classList.add('right');
                       }
                       e.currentTarget.lastElementChild?.classList.add('show');
                     } }
 
-                    onMouseOut={ (e) => { e.currentTarget.lastElementChild?.classList.remove('show', 'left') } }>
-                    •{ move.name } <ul className='hover-tip'>
-                      <h4>{ move.name }</h4>
-                      <h4>( Learning Info )</h4>
-                      { $move.version_group_details.map((detail, index) => {
-                        return (
-                          <>
-                            <li key={ index + 'c' }>Version: { detail.version_group.name }</li>
-                            <li key={ index + 'a' }>Lvl: { detail.level_learned_at }</li>
-                            <li key={ index + 'b' }>Method: { detail.move_learn_method.name }</li>
-                          </>
-                        );
-                      })
-                      }
-                    </ul>
+                    onMouseOut={ (e) => { e.currentTarget.lastElementChild?.classList.remove('show', 'left', 'right') } }>
+                    { move.name }
+                    <LearningInfo $move={ $move } />
                   </li>
-                )
+                );
               })
           }
         </ul>
@@ -177,10 +171,10 @@ function App() {
       return (
         <div data-testid="pokemon-result" className="pokemon-card">
           <div>
-            <h1 data-testId="pokemon-name" className="pokemon-name rounded-border">{ pokemon.name }</h1>
+            <h1 data-testId="pokemon-name" className="pokemon-name rounded">{ pokemon.name }</h1>
           </div>
-          <div className='picture-wrapper rounded-border'>
-            <img data-testid="pokemon-image" height={ 300 } width={ 300 }
+          <div className='picture-wrapper rounded'>
+            <img data-testid="pokemon-image" className="pokemon-image"
               src={ `${pokemon.sprites?.front_default ?? ''}` }
               alt="no image" />
           </div>
@@ -192,18 +186,30 @@ function App() {
     return list;
   }, [pokemonList]);
 
+
+  const searchClick = useCallback(() => {
+    if (!searchBoxRef.current.value) {
+      return
+    };
+    setFetchCalled(true);
+  }, []);
+
   return (
     <>
       <header data-testid="header">The Definitive Rx Pokedex <span style={ { fontSize: "2.4rem" } }>Front-End</span> <span style={ { fontSize: "1.8rem" } }>(tribute)</span></header>
       <div className='form-wrapper'>
         <input data-testid="search-input" id="Search" type='text' ref={ searchBoxRef }
-          placeholder='enter a pokemon name' />
-        <button data-testid="search-button" id="Button" ref={ searchBtnRef } onClick={ () => {
-          if (!searchBoxRef.current.value) {
-            return
-          };
-          setFetchCalled(true);
-        } } disabled={ loading }>{ loading ? 'Loading' : 'Search' }</button>
+          placeholder='enter a pokemon name'
+          onFocus={ () => {
+            // when focused, pressing enter will trigger the search
+            window.onkeydown = (e) => { if (e.key === "Enter") { searchClick() } }
+          } }
+          onBlur={ () => {
+            window.onkeydown = null;
+          } }
+
+        />
+        <button data-testid="search-button" id="Button" ref={ searchBtnRef } onClick={ searchClick } disabled={ loading }>{ loading ? 'Loading' : 'Search' }</button>
         { error &&
           <h3 data-testid="error-state" className='error'>{ "Error:" + error }</h3>
         }
@@ -219,3 +225,44 @@ function App() {
 }
 
 export default App;
+
+
+const LearningInfo = (props: { $move: IPokemonMove }) => {
+  const { $move } = props;
+  const move = $move.move;
+  return (
+    <div className='hover-tip'>
+      <h4>{ move.name }</h4>
+      <h4>( Learning Info )</h4>
+      <table>
+        <tr>
+          <th>Version</th>
+          <th>Level</th>
+          <th>Method</th>
+        </tr>
+        { $move.version_group_details.sort((a, b) => {
+          // sort by game version, level learned ascending 
+          if (a.version_group.name < b.version_group.name) {
+            return -1;
+          }
+          else if (a.version_group.name === b.version_group.name) {
+            return (a.level_learned_at < b.level_learned_at) ? -1 : 1;
+          }
+          else {
+            return 1;
+          }
+        }).map((detail, index) => {
+          return (
+            <tr>
+              <td key={ index + 'c' }>{ detail.version_group.name }</td>
+              <td key={ index + 'a' }>{ detail.level_learned_at }</td>
+              <td key={ index + 'b' }>{ detail.move_learn_method.name }</td>
+            </tr>
+          );
+        })
+        }
+      </table>
+
+    </div>
+  );
+}

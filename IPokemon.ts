@@ -1,5 +1,16 @@
 type NameURL = { name: string, url: string };
 
+export interface ILearningDetails {
+  level_learned_at: number,
+  move_learn_method: NameURL,
+  version_group: NameURL
+}
+
+export interface IPokemonMove {
+  move: NameURL;
+  version_group_details: ILearningDetails[]
+}
+
 export interface IPokemon {
   abilities: {
     ability: NameURL,
@@ -36,14 +47,7 @@ export interface IPokemon {
   id: number;
   is_default: boolean;
   location_area_encounters: string;
-  moves: {
-    move: NameURL;
-    version_group_details: {
-      "level_learned_at": number,
-      "move_learn_method": NameURL,
-      "version_group": NameURL
-    }[]
-  }[],
+  moves: PokemonMove[],
   name: string,
   order: number,
   past_abilities: {
