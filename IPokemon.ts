@@ -1,5 +1,16 @@
 type NameURL = { name: string, url: string };
 
+export interface ILearningDetails {
+  level_learned_at: number,
+  move_learn_method: NameURL,
+  version_group: NameURL
+}
+
+export interface IPokemonMove {
+  move: NameURL;
+  version_group_details: ILearningDetails[]
+}
+
 export interface IPokemon {
   abilities: {
     ability: NameURL,
@@ -36,14 +47,7 @@ export interface IPokemon {
   id: number;
   is_default: boolean;
   location_area_encounters: string;
-  moves: {
-    move: NameURL;
-    version_group_details: {
-      "level_learned_at": number,
-      "move_learn_method": NameURL,
-      "version_group": NameURL
-    }[]
-  }[],
+  moves: IPokemonMove[],
   name: string,
   order: number,
   past_abilities: {
@@ -55,9 +59,9 @@ export interface IPokemon {
   species: NameURL;
   sprites?: {
     "back_default": string | null,
-    "back_female": null,
+    "back_female": string | null,
     "back_shiny": string | null,
-    "back_shiny_female": null,
+    "back_shiny_female": string | null,
     "front_default": string | null,
     "front_female": string | null,
     "front_shiny": string | null;
@@ -67,7 +71,7 @@ export interface IPokemon {
       "dream_world":
       {
         "front_default": string | null;
-        "front_female": null
+        "front_female": string | null;
       },
       "home":
       {
@@ -283,6 +287,6 @@ export interface IPokemon {
       url: string;
     };
 
-    weight: number;
-  }
+  }[],
+  weight: number;
 }

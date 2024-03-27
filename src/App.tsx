@@ -1,24 +1,40 @@
 
-import { useRef, useState, useEffect, RefObject } from 'react';
-import { IPokemon } from '../IPokemon';
+import { useRef, useState, useEffect, RefObject, useCallback } from 'react';
+import { IPokemon, IPokemonMove } from '../IPokemon';
 
-const API_URL: string = "https://pokeapi.co/api/v2/pokemon/";
+export const API_URL: string = "https://pokeapi.co/api/v2/pokemon/";
 const abortConroller = new AbortController();
 
 const NO_RESULTS: string = "No Results";
 
 function App() {
 
+  /**
+   * DOM refs
+   */
   const searchBoxRef: RefObject<any> = useRef();
   const searchBtnRef: RefObject<any> = useRef();
 
+  // flag - when search button is clicked this is set to true
+  //        after async fetch has been dispatched this is reset
   const [fetchCalled, setFetchCalled] = useState(false);
-  const [pokemonList, setPokemonList] = useState<IPokemon[]>([]);
-  const [noResults, setNoResults] = useState(false);
 
+  // flag - loading is set to true when a fetch will be called
+  //        and is reset once the fetch promise is complete
   const [loading, setLoading] = useState(false);
+
+  // string - set when the fetch returns an unexpected result from
+  //          from the server
   const [error, setError] = useState("");
 
+  // flag - when a fetch returns a 404, that means there are no results
+  const [noResults, setNoResults] = useState(false);
+
+  // array - in case the API changes to support multiple results,
+  //         this component would still work
+  const [pokemonList, setPokemonList] = useState<IPokemon[]>([]);
+
+  // flag - used to prevent calling fetch before component is mounted
   const isMounting = useRef(false);
 
   useEffect(() => {
@@ -33,13 +49,14 @@ function App() {
     }
 
     if (!fetchCalled) {
-      // prevent fetch when `fetching` is set back to false;
+      // prevent fetch when `fetchCalled` is set back to false;
       return;
     }
 
     if (loading) {
       abortConroller.abort("search was cancelled due to new seach");
     }
+
     setLoading(true);
 
     const searchTerm = searchBoxRef.current.value;
@@ -47,7 +64,6 @@ function App() {
 
     return () => {
       //clean up
-
     }
   }, [fetchCalled]);
 
@@ -55,7 +71,7 @@ function App() {
   const fetchPokemon = async (searchTerm: string) => {
     const signal = abortConroller.signal;
 
-    const fetchUrl: string = `${API_URL}${searchTerm}`;
+    const fetchUrl: string = `${API_URL}${searchTerm.toLowerCase()}`;
     console.log(fetchUrl);
 
     fetch(fetchUrl, { signal })
@@ -77,8 +93,9 @@ function App() {
         console.log(result);
 
         if (result === NO_RESULTS) {
-          setNoResults(true);
-          setPokemonList([]);
+          setNoResults(true); // render "Empty State" (no results)
+          setPokemonList([]); // no pokenmon rendered
+          setError("");       // no error message
         }
         else {
           // I didn't realize the API would only ever return one Pokemon.
@@ -86,111 +103,166 @@ function App() {
           // over 1000 pokemon, I made the wrong assumtion under the time
           // pressure.  I thought a search would act like a filter and yield
           // multiple results.
-          setPokemonList(Array.isArray(result) ? result : [result]);
-          setNoResults(false);
+          setPokemonList(Array.isArray(result) ? result : [result]);  // render Pokemon Data
+          setNoResults(false);  // clear empty state
+          setError("");         // clear error
         }
       })
 
       .catch((e) => {
-        console.log(e);
-        setFetchCalled(false);
-        setLoading(false);
+
+        console.error(e);
         setError(e);
 
       }).finally(() => {
-        setFetchCalled(false);
+
+        console.log("loading is false");
         setLoading(false);
-      })
+
+      });
+
+    // after fetch request has been dispatched, set to false, 
+    // the "loading" flag will handle the rest
+    setFetchCalled(false);
   }
 
-  const renderPokemonList = () => {
+  const renderMovesList = useCallback((pokemon: IPokemon) => {
+    return (
+      <>
+        <h2>Moves</h2>
+        <ul data-testid='pokemon-moves' className='moves-list'>
+          {
+            pokemon.moves.sort((a, b) => {
+              return a.move.name <= b.move.name ? -1 : 1;
+            }).map(
+              ($move, index) => {
+                const move = $move.move;
+                return (
+                  // This is extra
+                  <li className="move" key={ index }
+                    onMouseOver={ (e) => {
+                      console.log(`window.innerWidth - e.clientX = ${window.innerWidth - e.clientX}`);
+                      if (window.innerWidth - e.clientX < 220) {
+                        e.currentTarget.lastElementChild?.classList.add('left');
+                      }
+                      else if (e.clientX < 220) {
+                        e.currentTarget.lastElementChild?.classList.add('right');
+                      }
+                      e.currentTarget.lastElementChild?.classList.add('show');
+                    } }
 
+                    onMouseOut={ (e) => { e.currentTarget.lastElementChild?.classList.remove('show', 'left', 'right') } }>
+                    { move.name }
+                    <LearningInfo $move={ $move } />
+                  </li>
+                );
+              })
+          }
+        </ul>
+      </>
+    )
+  }, [pokemonList]);
+
+  const renderPokemonList = useCallback(() => {
 
     const list = pokemonList.map((pokemon: IPokemon, index) => {
       console.log(index);
       console.log(pokemon);
       return (
-        <div className="pokemon-card">
+        <div data-testid="pokemon-result" className="pokemon-card">
           <div>
-            <h1 className="pokemon-name rounded-border">{ pokemon.name }</h1>
+            <h1 data-testId="pokemon-name" className="pokemon-name rounded">{ pokemon.name }</h1>
           </div>
-          <div className='picture-wrapper rounded-border'>
-            <img height={ 300 } width={ 300 }
+          <div className='picture-wrapper rounded'>
+            <img data-testid="pokemon-image" className="pokemon-image"
               src={ `${pokemon.sprites?.front_default ?? ''}` }
               alt="no image" />
           </div>
-          <h1>Abilities</h1>
-          <ul className='abilities-list'>
-            {
-              pokemon.moves.map(
-                ($move, index) => {
-                  const move = $move.move;
-                  return (
-                    // This is extra
-                    <li className="ability" key={ index }
-                      onMouseOver={ (e) => {
-                        if (window.innerWidth - e.screenX < 200) {
-                          e.currentTarget.lastElementChild?.classList.add('left');
-                        }
-                        e.currentTarget.lastElementChild?.classList.add('show');
-                      } }
-
-                      onMouseOut={ (e) => { e.currentTarget.lastElementChild?.classList.remove('show', 'left') } }>
-                      •{ move.name } <ul className='hover-tip'><h4>Details: ( { move.name } )</h4>
-                        { $move.version_group_details.map((detail, index) => {
-                          return (
-                            <>
-                              <li key={ index + 'a' }>Lvl Learned: { detail.level_learned_at }</li>
-                              <li key={ index + 'b' }>Learn Method: { detail.move_learn_method.name }</li>
-                              <li key={ index + 'c' }>Learn Method: { detail.version_group.name }</li>
-                            </>
-                          );
-                        })
-                        }
-
-                        <li>{ move.name }</li>
-                        <li>{ move.name }</li>
-                      </ul>
-                    </li>
-                  )
-                })
-            }
-          </ul>
+          { renderMovesList(pokemon) }
         </div >
       );
     })
 
     return list;
-  };
+  }, [pokemonList]);
+
+
+  const searchClick = useCallback(() => {
+    if (!searchBoxRef.current.value) {
+      return
+    };
+    setFetchCalled(true);
+  }, []);
 
   return (
     <>
-      <header>The Definitive Rx Pokedex <span style={ { fontSize: "2.4rem" } }>Front-End</span> <span style={ { fontSize: "1.8rem" } }>(tribute)</span></header>
+      <header data-testid="header">The Definitive Rx Pokedex <span style={ { fontSize: "2.4rem" } }>Front-End</span> <span style={ { fontSize: "1.8rem" } }>(tribute)</span></header>
       <div className='form-wrapper'>
-        <input id="Search" type='text' ref={ searchBoxRef }
-          placeholder='enter a pokemon name' />
-        <button id="Button" ref={ searchBtnRef } onClick={ () => {
-          if (!searchBoxRef.current.value) {
-            return
-          };
-          setFetchCalled(true);
-        } } disabled={ loading }>{ loading ? 'Loading' : 'Search' }</button>
-      </div>
+        <input data-testid="search-input" id="Search" type='text' ref={ searchBoxRef }
+          placeholder='enter a pokemon name'
+          onFocus={ () => {
+            // when focused, pressing enter will trigger the search
+            window.onkeydown = (e) => { if (e.key === "Enter") { searchClick() } }
+          } }
+          onBlur={ () => {
+            window.onkeydown = null;
+          } }
 
-      { error &&
-        <h3 className='error'>{ "Error:" + error }</h3>
-      }
+        />
+        <button data-testid="search-button" id="Button" ref={ searchBtnRef } onClick={ searchClick } disabled={ loading }>{ loading ? 'Loading' : 'Search' }</button>
+        { error &&
+          <h3 data-testid="error-state" className='error'>{ "Error:" + error }</h3>
+        }
+      </div>
 
       { pokemonList && pokemonList.length > 0 && renderPokemonList() }
       { noResults &&
 
-        <div className="empty"><h1>{ NO_RESULTS }</h1></div>
+        <div data-testid="empty-state" className="empty"><h1>{ NO_RESULTS }</h1></div>
       }
-
-
     </>
   );
 }
 
-
 export default App;
+
+
+const LearningInfo = (props: { $move: IPokemonMove }) => {
+  const { $move } = props;
+  const move = $move.move;
+  return (
+    <div className='hover-tip'>
+      <h4>{ move.name }</h4>
+      <h4>( Learning Info )</h4>
+      <table>
+        <tr>
+          <th>Version</th>
+          <th>Level</th>
+          <th>Method</th>
+        </tr>
+        { $move.version_group_details.sort((a, b) => {
+          // sort by game version, level learned ascending 
+          if (a.version_group.name < b.version_group.name) {
+            return -1;
+          }
+          else if (a.version_group.name === b.version_group.name) {
+            return (a.level_learned_at < b.level_learned_at) ? -1 : 1;
+          }
+          else {
+            return 1;
+          }
+        }).map((detail, index) => {
+          return (
+            <tr>
+              <td key={ index + 'c' }>{ detail.version_group.name }</td>
+              <td key={ index + 'a' }>{ detail.level_learned_at }</td>
+              <td key={ index + 'b' }>{ detail.move_learn_method.name }</td>
+            </tr>
+          );
+        })
+        }
+      </table>
+
+    </div>
+  );
+}
