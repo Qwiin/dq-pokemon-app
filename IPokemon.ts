@@ -47,7 +47,7 @@ export interface IPokemon {
   id: number;
   is_default: boolean;
   location_area_encounters: string;
-  moves: PokemonMove[],
+  moves: IPokemonMove[],
   name: string,
   order: number,
   past_abilities: {

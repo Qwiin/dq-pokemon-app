@@ -12,6 +12,49 @@ code {
     monospace;
 }
 
+:root {
+
+  /* Gen I */
+  --poke-red: #D53526;
+  --poke-blue: #1E27CB;
+  --poke-yellow: #EACB49;
+
+  /* Gen II */
+  --poke-gold: #C8AD61;
+  --poke-silver: #AEB1B4;
+  --poke-crystal: #54889B;
+
+  /* Gen III */
+  --poke-ruby: #AF2A1E;
+  --poke-sapphire: #090B83;
+  --poke-emerald: #356F36;
+
+  /* Gen IV */
+  --poke-diamond: #90B0DD;
+  --poke-pearl: #EEC3D4;
+  --poke-platinum: #B9B5B2;
+
+  /* Gen V */
+  --poke-black: #000;
+  --poke-white: #FFF;
+
+  /* Gen VI */
+  --poke-x: #3D7BC0;
+  --poke-y: #DB3832;
+
+  /* Gen VII */
+  --poke-sun: #E99B40;
+  --poke-moon: #54A7DC;
+
+  /* Gen VIII */
+  --poke-sword: #48A1E3;
+  --poke-shield: #CA2B5B;
+
+  /* Gen IX */
+  --poke-scarlett: #9E312F;
+  --poke-violet: #6F2886;
+}
+
 h2 {
   font-size: 2.5rem;
   padding: 0;
