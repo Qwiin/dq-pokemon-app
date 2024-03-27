@@ -72,7 +72,7 @@ function App() {
     const signal = abortConroller.signal;
 
     const fetchUrl: string = `${API_URL}${searchTerm.toLowerCase()}`;
-    console.log(fetchUrl);
+    // console.log(fetchUrl);
 
     fetch(fetchUrl, { signal })
 
@@ -90,7 +90,7 @@ function App() {
       })
 
       .then((result) => {
-        console.log(result);
+        // console.log(result);
 
         if (result === NO_RESULTS) {
           setNoResults(true); // render "Empty State" (no results)
@@ -116,7 +116,7 @@ function App() {
 
       }).finally(() => {
 
-        console.log("loading is false");
+        // console.log("loading is false");
         setLoading(false);
 
       });
@@ -141,7 +141,7 @@ function App() {
                   // This is extra
                   <li className="move" key={ index }
                     onMouseOver={ (e) => {
-                      console.log(`window.innerWidth - e.clientX = ${window.innerWidth - e.clientX}`);
+                      // console.log(`window.innerWidth - e.clientX = ${window.innerWidth - e.clientX}`);
                       if (window.innerWidth - e.clientX < 220) {
                         e.currentTarget.lastElementChild?.classList.add('left');
                       }
@@ -166,12 +166,12 @@ function App() {
   const renderPokemonList = useCallback(() => {
 
     const list = pokemonList.map((pokemon: IPokemon, index) => {
-      console.log(index);
-      console.log(pokemon);
+      // console.log(index);
+      // console.log(pokemon);
       return (
-        <div data-testid="pokemon-result" className="pokemon-card">
+        <div key={ 'poke' + index } data-testid="pokemon-result" className="pokemon-card">
           <div>
-            <h1 data-testId="pokemon-name" className="pokemon-name rounded">{ pokemon.name }</h1>
+            <h1 data-testid="pokemon-name" className="pokemon-name rounded">{ pokemon.name }</h1>
           </div>
           <div className='picture-wrapper rounded'>
             <img data-testid="pokemon-image" className="pokemon-image"
@@ -235,32 +235,36 @@ const LearningInfo = (props: { $move: IPokemonMove }) => {
       <h4>{ move.name }</h4>
       <h4>( Learning Info )</h4>
       <table>
-        <tr>
-          <th>Version</th>
-          <th>Level</th>
-          <th>Method</th>
-        </tr>
-        { $move.version_group_details.sort((a, b) => {
-          // sort by game version, level learned ascending 
-          if (a.version_group.name < b.version_group.name) {
-            return -1;
+        <thead>
+          <tr>
+            <td>Version</td>
+            <td>Level</td>
+            <td>Method</td>
+          </tr>
+        </thead>
+        <tbody>
+          { $move.version_group_details.sort((a, b) => {
+            // sort by game version, level learned ascending 
+            if (a.version_group.name < b.version_group.name) {
+              return -1;
+            }
+            else if (a.version_group.name === b.version_group.name) {
+              return (a.level_learned_at < b.level_learned_at) ? -1 : 1;
+            }
+            else {
+              return 1;
+            }
+          }).map((detail, index) => {
+            return (
+              <tr key={ index + 'r' }>
+                <td key={ index + 'c' }>{ detail.version_group.name }</td>
+                <td key={ index + 'a' }>{ detail.level_learned_at }</td>
+                <td key={ index + 'b' }>{ detail.move_learn_method.name }</td>
+              </tr>
+            );
+          })
           }
-          else if (a.version_group.name === b.version_group.name) {
-            return (a.level_learned_at < b.level_learned_at) ? -1 : 1;
-          }
-          else {
-            return 1;
-          }
-        }).map((detail, index) => {
-          return (
-            <tr>
-              <td key={ index + 'c' }>{ detail.version_group.name }</td>
-              <td key={ index + 'a' }>{ detail.level_learned_at }</td>
-              <td key={ index + 'b' }>{ detail.move_learn_method.name }</td>
-            </tr>
-          );
-        })
-        }
+        </tbody>
       </table>
 
     </div>
