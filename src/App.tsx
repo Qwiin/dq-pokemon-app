@@ -237,9 +237,9 @@ const LearningInfo = (props: { $move: IPokemonMove }) => {
       <table>
         <thead>
           <tr>
-            <td>Version</td>
-            <td>Level</td>
-            <td>Method</td>
+            <th>Version</th>
+            <th>Level</th>
+            <th>Method</th>
           </tr>
         </thead>
         <tbody>
