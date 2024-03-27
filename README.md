@@ -1,4 +1,26 @@
-# React + TypeScript + Vite
+
+# DQ's PokeAPI Demo
+
+## Live Demo
+[vercel link](https://dq-pokemon-app.vercel.app/)
+
+
+## To Get Started:
+1. `npm install`
+2. `npm run test`
+3. `npm run dev`
+4. Navigate to "http://localhost:5173" in your browser of choice
+
+## To Deploy
+1. `npm run test`
+1. `npm run build`
+
+
+___
+
+...
+### Vite TS + React README Boilerplate
+___
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
